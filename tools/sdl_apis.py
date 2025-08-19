@@ -14,6 +14,17 @@ def get_sample_data_path(filename: str) -> str:
     current_dir = os.path.dirname(__file__)
     return os.path.join(current_dir, "5G-Sample-Data", filename)
 
+def get_xapp_root_path() -> str:
+    """
+    Get the xApp root directory path from environment variable XAPP_ROOT_PATH.
+    If not set, falls back to 'xApp' subdirectory of current working directory.
+    """
+    xapp_root = os.getenv("XAPP_ROOT_PATH")
+    if xapp_root:
+        return xapp_root
+    else:
+        return os.path.join(os.getcwd(), "xApp")
+
 # gloabal mappings
 xapp_names = {
     "MobieXpert xApp": "MobieXpert",
@@ -620,7 +631,7 @@ def build_xapp_osc(xapp_name: str):
         logs.append(f"[buildXapp] Start building xApp: {xapp_name}")
 
         # Step 1: create xApp folder if it doesn't exist
-        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_root = get_xapp_root_path()
         if not os.path.exists(xapp_root):
             try:
                 os.makedirs(xapp_root)
@@ -775,7 +786,7 @@ def deploy_xapp_osc(xapp_name: str):
             return {"error": "Invalid xapp_name"}, 400
 
         # 3) Verify xApp folder
-        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_root = get_xapp_root_path()
         xapp_dir = os.path.join(xapp_root, xapp_name)
         if not os.path.exists(xapp_dir):
             return {
@@ -870,7 +881,7 @@ def unDeploy_xapp_osc(xapp_name: str):
         print(f"[unDeployXapp] unDeploy xApp: {xapp_name}")
 
         # step 1
-        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_root = get_xapp_root_path()
         xapp_dir = os.path.join(xapp_root, xapp_name)
         if not os.path.exists(xapp_dir):
             return {"error": f"xApp folder {xapp_dir} does not exist."}, 400
