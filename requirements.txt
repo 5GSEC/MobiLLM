@@ -1,0 +1,12 @@
+flask
+flask-cors
+openai
+google-genai
+langchain 
+langchain_google_genai 
+google-generativeai
+langgraph
+langgraph-supervisor
+faiss-cpu
+sentence-transformers
+numpy
