@@ -16,7 +16,7 @@ def get_all_mitre_fight_techniques(fight_json_path: str=None) -> dict:
         dict: A dictionary containing all the MiTRE Fight techniques. Each dict object is a specific technique encoded as (key, value) pairs. Each technique will contain fields like Name, Descriptions, and Mitigations.
     '''
     if fight_json_path is None:
-        fight_json_path = os.path.join(os.path.dirname(__file__), "mitre_fight_techniques.json")
+        fight_json_path = os.path.join(os.path.dirname(__file__), "mitre_fight_techniques-3.0.1.json")
     
     with open(fight_json_path, 'r') as f:
         techniques = json.load(f)
@@ -38,7 +38,7 @@ def get_mitre_fight_technique_by_id(tech_id: str, fight_json_path: str=None) -> 
         return {}
     
     if fight_json_path is None:
-        fight_json_path = os.path.join(os.path.dirname(__file__), "mitre_fight_techniques.json")
+        fight_json_path = os.path.join(os.path.dirname(__file__), "mitre_fight_techniques-3.0.1.json")
     
     tech = {}
     with open(fight_json_path, 'r') as f:
@@ -62,7 +62,7 @@ def search_mitre_fight_techniques(threat_summary: str, top_k: int=5, fight_json_
         list: A list of most relevant MiTRE Fight technique IDs based on the top_k argument
     '''
     if fight_json_path is None:
-        fight_json_path = os.path.join(os.path.dirname(__file__), "mitre_fight_techniques.json")
+        fight_json_path = os.path.join(os.path.dirname(__file__), "mitre_fight_techniques-3.0.1.json")
     
     embedding_model = SentenceTransformer(embedding_model_name)
 
@@ -118,7 +118,7 @@ def load_and_process_fight_data(json_filepath):
             fight_data_raw = json.load(f)
     except FileNotFoundError:
         print(f"Error: The file {json_filepath} was not found.")
-        print("Please ensure 'mitre_fight_techniques.json' exists in the same directory or provide the correct path.")
+        print("Please ensure 'mitre_fight_techniques-3.0.1.json' exists in the same directory or provide the correct path.")
         # Create a dummy file for demonstration if not found
         return None
 
@@ -171,7 +171,7 @@ def load_or_create_mitre_fight_faiss_index(fight_json_file_name: str=None, fight
     Load or create a FAISS index for MITRE FiGHT techniques.
     """
     if fight_json_file_name is None:
-        fight_json_file_name = "mitre_fight_techniques.json"
+        fight_json_file_name = "mitre_fight_techniques-3.0.1.json"
     if fight_db_name is None:
         fight_db_name = "mitre_fight.faiss_index"
     
@@ -232,3 +232,5 @@ def load_or_create_mitre_fight_faiss_index(fight_json_file_name: str=None, fight
 
 # res = search_mitre_fight_techniques.invoke({"threat_summary": test_query, "top_k": 5})
 # print(res)
+
+load_or_create_mitre_fight_faiss_index()
