@@ -2,12 +2,10 @@
 
 ** fix imports
 
-# export LANGSMITH_TRACING=true
-# export LANGSMITH_API_KEY="<your-langchain-api-key>"
-# export LANGCHAIN_PROJECT="MobiLLM Evaluation"
+### export LANGSMITH_TRACING=true
+### export LANGSMITH_API_KEY="<your-langchain-api-key>"
+### export LANGCHAIN_PROJECT="MobiLLM Evaluation"
 
 
 
-kameron@tangiblerobots.ai - household robots
-shankara@tangiblerobots.ai - 
 
