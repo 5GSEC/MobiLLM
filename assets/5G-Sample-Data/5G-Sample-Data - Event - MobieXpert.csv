@@ -1,0 +1,3 @@
+1;RRC Null Cipher;20000;1749482880;54649;The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.;Critical
+2;RRC Null Cipher;20000;1749482886;60544;The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.;Critical
+3;Blind DoS;30000;1749482954;39592;A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.;Critical

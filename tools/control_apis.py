@@ -8,10 +8,7 @@ from langgraph.types import interrupt
 @tool
 def get_ran_cu_config_tool() -> str:
     '''
-    Get the configuration of the currently running CU. The available configuration include:
-    - security: The preferred ciphering and integrity algorithms
-    - network: The network configurations including IP addresses, ports, and identities like gNB ID, tracking area code, etc.
-    - physical parameters: pdcch_ConfigSIB1
+    Get the configuration of the currently running CU.
     Return:
         str: The configuration of the currently running CU.
     '''
