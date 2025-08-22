@@ -1,0 +1,23 @@
+Category,Description,SE-RAN Solutions
+Authentication,Mutual authentication (5G AKA or EAP-AKA’) between UE and network.,MobiFlow analyzing NAS authentication messages
+Security Context Handling,Secure storage/management of NAS & AS contexts in UE/gNB.,MobiFlow inspecting security mode commands
+NAS Security,NAS integrity and ciphering post security mode command.,MobiFlow + MobieXpert checking NAS security algorithms
+AS Security (RRC/UP),RRC integrity required; UP confidentiality/integrity mandatory in Rel-16+.,MobiFlow + MobieXpert verifying RRC algorithms
+Replay Protection,COUNT values used for detecting and blocking replay attacks.,MobiFlow + MobieXpert checking AS command counters
+Algorithm Support,Support for 128-NEA (encryption) and 128-NIA (integrity) algorithms.,MobiFlow + MobieXpert verifying security capability exchange
+Data Confidentiality,"Encryption of user/control plane data (RRC, NAS, UP).",MobiFlow + MobieXpert checking ciphering algorithms
+Data Integrity,Integrity for RRC (required) and optionally for UP.,MobiFlow + MobieXpert checking integrity protection
+Subscriber Privacy,Use of SUCI to conceal SUPI; no SUPI in paging.,MobiFlow + MobieXpert checking ID types
+Bidding Down Mitigation,Use ABBA to prevent downgrade attacks; verify feature integrity.,MobiLLM + MobieXpert detect attacks in real-time
+Medical Device Security,"Secure firmware config, update enforcement on medical UEs.",MobiFlow + MobieXpert detects misconfigurations
+DDoS Mitigation,Prevent UE/gNB from being part of or targeted by DDoS.,MobiFlow + MobiWatch detect RRC DDoS patterns
+SLA Enforcement,"Enforce SLAs, failover, and redundancy for mission-critical use cases.",MobiFlow + MobiLLM auto-adjust slicing
+Temporary ID Reallocation,Refresh GUTI to prevent tracking.,MobiFlow + MobieXpert monitor GUTI updates
+Initial NAS Protection,Encrypt NAS messages after context setup.,MobiFlow + MobieXpert check encryption status
+Identity Response w/ SUCI,"UE must respond with SUCI, not SUPI.",MobiFlow + MobieXpert check ID response types
+Native EAP Support,Support mutual authentication via EAP-AKA’.,MobiFlow + MobieXpert analyze EAP messages
+SEAF Usage,Authentication context anchored in SEAF collocated with AMF.,MobiFlow + MobieXpert analyze initial NAS authentication
+UE Audit Logging,"Fine-grained session tracking, error logging, and credential analytics.",MobiFlow + MobiLLM offer detailed UE session audits
+Fault Diagnosis & Recovery,Detect faults in UE and RAN and automate mitigation.,MobiFlow + MobiWatch detect anomalies; MobiLLM automates responses
+Fake Base Station Detection,Identify rogue base stations spoofing MIB/SIB messages.,MobiFlow + MobieXpert + MobiWatch detect via UE reports & heuristics
+Unauthorized UE Detection,Block spoofed or malicious UE connection attempts.,MobiFlow + MobieXpert monitor sessions; MobiLLM enforces policies

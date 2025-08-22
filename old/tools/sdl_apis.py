@@ -1,9 +1,29 @@
 import subprocess
 import os
 import json
+import time
 from ..utils import *
 from langchain.tools import tool
-from .global_vars import *
+from .. import global_vars
+
+def get_sample_data_path(filename: str) -> str:
+    """
+    Get the absolute path to a file in the 5G-Sample-Data directory.
+    This ensures the file can be found regardless of where the script is executed from.
+    """
+    current_dir = os.path.dirname(__file__)
+    return os.path.join(current_dir, "5G-Sample-Data", filename)
+
+def get_xapp_root_path() -> str:
+    """
+    Get the xApp root directory path from environment variable XAPP_ROOT_PATH.
+    If not set, falls back to 'xApp' subdirectory of current working directory.
+    """
+    xapp_root = os.getenv("XAPP_ROOT_PATH")
+    if xapp_root:
+        return xapp_root
+    else:
+        return os.path.join(os.getcwd(), "xApp")
 
 # gloabal mappings
 xapp_names = {
@@ -23,6 +43,12 @@ sdl_namespaces = ["ue_mobiflow", "bs_mobiflow", "mobiexpert-event", "mobiwatch-e
 pod_names = ["ricplt-e2mgr", "mobiflow-auditor", "mobiexpert-xapp", "mobiwatch-xapp"]
 display_names = ["E2 Manager", "MobiFlow Auditor xApp", "MobieXpert xApp", "MobiWatch xApp"]
 
+active_ue_data_time_series = {}
+active_bs_data_time_series = {}
+critical_event_time_series = {}
+total_event_time_series = {}
+current_active_ue_ids = []
+max_time_series_length = 90 # update once every 10 seconds, 15 minutes = 900 seconds = 90 data points
 
 def fetch_service_status_osc() -> dict:
     ''' 
@@ -34,8 +60,8 @@ def fetch_service_status_osc() -> dict:
     services = {}
 
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
-        with open("../src/db/5G-Sample-Data - Service.csv", "r") as f:
+    if global_vars.simulation_mode is True:
+        with open(get_sample_data_path("5G-Sample-Data - Service.csv"), "r") as f:
             lines = f.readlines()
             for line in lines:
                 tokens = line.split(":")
@@ -177,7 +203,7 @@ def fetch_sdl_data_osc() -> dict:
     # get all BS mobiflow
     bs_mobiflow_key = ns_target[1]
     bs_meta = "DataType,Index,Timestamp,Version,Generator,nr_cell_id,mcc,mnc,tac,report_period,status".split(",")
-    values = get_bs_mobiflow_data_all_tool("")
+    values = get_bs_mobiflow_data_all_tool.invoke("")
     for val in values:
         bs_mf_item = val.split(";")
         nr_cell_id = bs_mf_item[bs_meta.index("nr_cell_id")]
@@ -200,12 +226,17 @@ def fetch_sdl_data_osc() -> dict:
     # get all UE mobiflow
     ue_mobiflow_key = ns_target[0]
     ue_meta = "DataType,Index,Version,Generator,Timestamp,nr_cell_id,gnb_cu_ue_f1ap_id,gnb_du_ue_f1ap_id,rnti,s_tmsi,mobile_id,rrc_cipher_alg,rrc_integrity_alg,nas_cipher_alg,nas_integrity_alg,rrc_msg,nas_msg,rrc_state,nas_state,rrc_sec_state,reserved_field_1,reserved_field_2,reserved_field_3".split(",")
-    values = get_ue_mobiflow_data_all_tool("")
+    values = get_ue_mobiflow_data_all_tool.invoke("")
     for val in values:
         ue_mf_item = val.split(";")
         ue_id = ue_mf_item[ue_meta.index("gnb_du_ue_f1ap_id")]
         nr_cell_id = ue_mf_item[ue_meta.index("nr_cell_id")]
         if nr_cell_id in network:
+            ue_timestamp = ue_mf_item[ue_meta.index('Timestamp')]
+            bs_timestamp = network[nr_cell_id]["timestamp"]
+            # don't report UE if the UE's timestamp is older than the BS's timestamp, which means the UE is not connected to the BS
+            if ue_timestamp < bs_timestamp:
+                continue
             if ue_id not in network[nr_cell_id]["ue"]:
                 # add UE
                 network[nr_cell_id]["ue"][ue_id] = {
@@ -266,37 +297,83 @@ def fetch_sdl_data_osc() -> dict:
         else:
             print("nr_cell_id not found")
 
-
-    # # get all mobiexpert-event
-    # events = fetch_sdl_event_data_osc()
-    # event_key = ns_target[2]
-    # event_meta = "Event ID,Event Name,Affected base station ID,Time,Affected UE ID,Description,Level".split(",")
-    # for event in events.values():
-    #     # load MobieXpert events
-    #     if event['source'] == "MobieXpert":
-    #         nr_cell_id = event["cellID"]
-    #         event_id = event["id"]
-    #         ue_id = event["ueID"]
-    #         if nr_cell_id in network:
-    #             if ue_id in network[nr_cell_id]["ue"]:
-    #                 # add event
-    #                 network[nr_cell_id]["ue"][ue_id]["event"][event_id] = {
-    #                     "Event Name": event["name"],
-    #                     "Timestamp": event["timestamp"],
-    #                     "Affected base station ID": nr_cell_id,
-    #                     "Affected UE ID": ue_id,
-    #                     "Level": event["severity"],
-    #                     "Description": event["description"]
-    #                 }
-    #             else:
-    #                 print(f"gnb_du_ue_f1ap_id {ue_id} not found")
-    #     else:
-    #         print(f"nr_cell_id {nr_cell_id} not found")
-    
-    # get all mobiwatch-event
-
     # print(json.dumps(network, indent=4))
+
+    # update time series data
+    update_network_time_series(network)
+
     return network
+
+def update_network_time_series(network: dict):
+    '''
+    Update the time series data for the network data. Invoked when fetch_sdl_data_osc is called.
+    '''
+    current_active_ue = 0
+    current_active_bs = 0
+    global current_active_ue_ids
+    current_active_ue_ids = []
+    for nr_cell_id in network.keys():
+        if int(network[nr_cell_id]["status"]) == 1:
+            current_active_bs += 1
+            if "ue" in network[nr_cell_id].keys():
+                current_active_ue += len(network[nr_cell_id]["ue"].keys())
+                current_active_ue_ids.extend([int(ue_id) for ue_id in network[nr_cell_id]["ue"].keys()])
+    
+    # get current timestamp (integer)
+    current_ts = int(time.time())
+    active_bs_data_time_series[current_ts] = current_active_bs
+    active_ue_data_time_series[current_ts] = current_active_ue
+
+    # remove the oldest timestamp
+    if len(active_bs_data_time_series) > max_time_series_length:
+        active_bs_data_time_series.pop(min(active_bs_data_time_series.keys()))
+    if len(active_ue_data_time_series) > max_time_series_length:
+        active_ue_data_time_series.pop(min(active_ue_data_time_series.keys()))
+
+def update_event_time_series(event: dict):
+    '''
+    Update the time series data for the event data. Invoked when fetch_sdl_event_data_osc is called.
+    '''
+    current_critical_event = 0
+    current_total_event = 0
+    for event_id in event.keys():
+        if event[event_id]["active"] is False:
+            continue # skip inactive events
+        if event[event_id]["severity"] == "Critical":
+            current_critical_event += 1
+        current_total_event += 1
+    
+    current_ts = int(time.time())
+    critical_event_time_series[current_ts] = current_critical_event
+    total_event_time_series[current_ts] = current_total_event
+
+    # remove the oldest timestamp
+    if len(critical_event_time_series) > max_time_series_length:
+        critical_event_time_series.pop(min(critical_event_time_series.keys()))
+    if len(total_event_time_series) > max_time_series_length:
+        total_event_time_series.pop(min(total_event_time_series.keys()))
+
+def get_time_series_data() -> dict:
+    global active_bs_data_time_series, active_ue_data_time_series
+    global critical_event_time_series, total_event_time_series
+    ts = {}
+    # active_bs_data_time_series_example = {
+    #     1721731200: 0,
+    #     1721731210: 0,
+    #     1721731220: 0,
+    #     1721731230: 4,
+    #     1721731240: 5,
+    #     1721731250: 5,
+    #     1721731260: 5,
+    #     1721731270: 5,
+    #     1721731280: 8,
+    #     1721731290: 8,
+    # }
+    ts["active_bs"] = active_bs_data_time_series
+    ts["active_ue"] = active_ue_data_time_series
+    ts["critical_event"] = critical_event_time_series
+    ts["total_event"] = total_event_time_series
+    return ts
 
 @tool
 def fetch_sdl_data_osc_tool() -> dict:
@@ -314,16 +391,17 @@ def fetch_sdl_event_data_osc() -> dict:
         dict: A dictionary containing the network event data.
     '''
     event = {}
+    event_id_counter = 1
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         # read MobieXpert events
-        with open("../src/db/5G-Sample-Data - Event - MobieXpert.csv", "r") as f:
+        with open(get_sample_data_path("5G-Sample-Data - Event - MobieXpert.csv"), "r") as f:
             event_meta = "Event ID,Event Name,Affected base station ID,Time,Affected UE ID,Description,Level".split(",")
             lines = f.readlines()
             for line in lines:
                 event_item = line.strip().split(";")
-                event[len(event)+1] = {
-                    "id": len(event)+1,
+                event[event_id_counter] = {
+                    "id": event_id_counter,
                     "source": "MobieXpert",
                     "name": event_item[event_meta.index("Event Name")],
                     "cellID": event_item[event_meta.index("Affected base station ID")],
@@ -331,18 +409,20 @@ def fetch_sdl_event_data_osc() -> dict:
                     "timestamp": event_item[event_meta.index("Time")],
                     "severity": event_item[event_meta.index("Level")],
                     "description": event_item[event_meta.index("Description")],
+                    "active": True
                 }
+                event_id_counter += 1
 
         # read MobiWatch events
-        with open("../src/db/5G-Sample-Data - Event - MobiWatch.csv", "r") as f:
+        with open(get_sample_data_path("5G-Sample-Data - Event - MobiWatch.csv"), "r") as f:
             event_meta = "id,source,name,cellID,ueID,timestamp,severity,mobiflow_index,description".split(",")
             lines = f.readlines()
             for line in lines:
                 event_item = line.strip().split(";")
                 model_name = event_item[0]
                 # f"{model_name};{event['event_name']};{event['nr_cell_id']};{event['ue_id']};{event['timestamp']};{index_str};{event_desc}"
-                event[len(event)+1] = {
-                    "id": len(event)+1,
+                event[event_id_counter] = {
+                    "id": event_id_counter,
                     "source": f"MobiWatch_{model_name}",
                     "name": event_item[1],
                     "cellID": event_item[2],
@@ -351,7 +431,9 @@ def fetch_sdl_event_data_osc() -> dict:
                     "severity": "Warning",
                     "mobiflow_index": event_item[5],
                     "description": event_item[6],
+                    "active": True
                 }
+                event_id_counter += 1
 
         return event
 
@@ -401,10 +483,10 @@ def fetch_sdl_event_data_osc() -> dict:
         for val in values:
             val = ''.join([c for c in val if 32 <= ord(c) <= 126])[2:]  # Remove non-ASCII characters
             event_item = val.split(";")
-            
+                        
             # create and insert attack event
-            event[len(event)+1] = {
-                "id": len(event)+1,
+            event[event_id_counter] = {
+                "id": event_id_counter,
                 "source": "MobieXpert",
                 "name": event_item[event_meta.index("Event Name")],
                 "cellID": event_item[event_meta.index("Affected base station ID")],
@@ -412,7 +494,13 @@ def fetch_sdl_event_data_osc() -> dict:
                 "timestamp": event_item[event_meta.index("Time")],
                 "severity": event_item[event_meta.index("Level")],
                 "description": event_item[event_meta.index("Description")],
+                "active": True
             }
+
+            if int(event_item[event_meta.index("Affected UE ID")]) not in current_active_ue_ids:
+                event[event_id_counter]["active"] = False # indicate the event is not related to active UEs
+
+            event_id_counter += 1
 
     # get all mobiwatch-event
     event_key = ns_target[1]
@@ -433,8 +521,8 @@ def fetch_sdl_event_data_osc() -> dict:
             model_name = event_item[0]
             if model_name == "autoencoder_v2":
                 # f"{model_name};{event['event_name']};{event['nr_cell_id']};{event['ue_id']};{event['timestamp']};{index_str};{event_desc}"
-                event[len(event)+1] = {
-                    "id": len(event)+1,
+                event[event_id_counter] = {
+                    "id": event_id_counter,
                     "source": f"MobiWatch_{model_name}",
                     "name": event_item[1],
                     "cellID": event_item[2],
@@ -443,12 +531,16 @@ def fetch_sdl_event_data_osc() -> dict:
                     "severity": "Warning", # TODO: this should be populated from the xApp data
                     "mobiflow_index": event_item[5],
                     "description": event_item[6],
+                    "active": True
                 }
+                if int(event_item[3]) not in current_active_ue_ids:
+                    event[event_id_counter]["active"] = False # indicate the event is not related to active UEs
+                event_id_counter += 1
 
             elif model_name == "lstm_v2":
                 # f"{model_name};{event['event_name']};{event['nr_cell_id']};{event['ue_id']};{event['timestamp']};{str(merged_sequence_list)};{event_desc}"
-                event[len(event)+1] = {
-                    "id": len(event)+1,
+                event[event_id_counter] = {
+                    "id": event_id_counter,
                     "source": f"MobiWatch_{model_name}",
                     "name": event_item[1],
                     "cellID": event_item[2],
@@ -457,8 +549,14 @@ def fetch_sdl_event_data_osc() -> dict:
                     "severity": "Warning", # TODO: this should be populated from the xApp data
                     "mobiflow_index": event_item[5],
                     "description": event_item[6],
+                    "active": True
                 }
-    
+                if int(event_item[3]) not in current_active_ue_ids:
+                    event[event_id_counter]["active"] = False # indicate the event is not related to active UEs
+                event_id_counter += 1
+    # update event time series data
+    update_event_time_series(event)
+
     return event
 
 @tool
@@ -516,7 +614,7 @@ def build_xapp_osc(xapp_name: str):
     """
 
     # if simulation mode is enabled, return sample message
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         return {"message": "Build finished", "logs": []}, 200
 
     original_cwd = os.getcwd()
@@ -533,7 +631,7 @@ def build_xapp_osc(xapp_name: str):
         logs.append(f"[buildXapp] Start building xApp: {xapp_name}")
 
         # Step 1: create xApp folder if it doesn't exist
-        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_root = get_xapp_root_path()
         if not os.path.exists(xapp_root):
             try:
                 os.makedirs(xapp_root)
@@ -641,7 +739,7 @@ def deploy_xapp_osc(xapp_name: str):
     Deploy the xApp from the given xapp_name.
     '''
     # if simulation mode is enabled, return sample message
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         return {"message": f"{xapp_name} is deployed successfully", "logs": []}, 200
 
     original_cwd = os.getcwd()  # Remember our original directory
@@ -688,7 +786,7 @@ def deploy_xapp_osc(xapp_name: str):
             return {"error": "Invalid xapp_name"}, 400
 
         # 3) Verify xApp folder
-        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_root = get_xapp_root_path()
         xapp_dir = os.path.join(xapp_root, xapp_name)
         if not os.path.exists(xapp_dir):
             return {
@@ -770,7 +868,7 @@ def unDeploy_xapp_osc(xapp_name: str):
         step 4: check undeployment is successful or not
     '''
     # if simulation mode is enabled, return sample message
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         return {"message": f"{xapp_name} is undeployed successfully", "logs": []}, 200
     
     original_cwd = os.getcwd()
@@ -783,7 +881,7 @@ def unDeploy_xapp_osc(xapp_name: str):
         print(f"[unDeployXapp] unDeploy xApp: {xapp_name}")
 
         # step 1
-        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_root = get_xapp_root_path()
         xapp_dir = os.path.join(xapp_root, xapp_name)
         if not os.path.exists(xapp_dir):
             return {"error": f"xApp folder {xapp_dir} does not exist."}, 400
@@ -847,8 +945,8 @@ def get_ue_mobiflow_data_all_tool() -> list:
     '''
     keys = []
     # if simulation mode is enabled, grab the data keys from the sample data file
-    if simulation_mode is True:
-        with open("../src/db/5G-Sample-Data - UE.csv", "r") as file:
+    if global_vars.simulation_mode is True:
+        with open(get_sample_data_path("5G-Sample-Data - UE.csv"), "r") as file:
             for line in file.readlines():
                 index = int(line.split(";")[1])
                 keys.append(index)
@@ -893,9 +991,9 @@ def get_ue_mobiflow_data_by_index(index_list: list) -> list:
         return []
 
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         mf_list = []
-        with open("../src/db/5G-Sample-Data - UE.csv", "r") as file:
+        with open(get_sample_data_path("5G-Sample-Data - UE.csv"), "r") as file:
             for line in file.readlines():
                 index = int(line.split(";")[1])
                 if index in index_list:
@@ -936,8 +1034,8 @@ def get_bs_mobiflow_data_all_tool() -> list:
     '''
     keys = []
     # if simulation mode is enabled, grab the data keys from the sample data file
-    if simulation_mode is True:
-        with open("../src/db/5G-Sample-Data - BS.csv", "r") as file:
+    if global_vars.simulation_mode is True:
+        with open(get_sample_data_path("5G-Sample-Data - BS.csv"), "r") as file:
             for line in file.readlines():
                 index = int(line.split(";")[1])
                 keys.append(index)
@@ -982,9 +1080,9 @@ def get_bs_mobiflow_data_by_index(index_list: list) -> list:
         return []
     
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         mf_list = []
-        with open("../src/db/5G-Sample-Data - BS.csv", "r") as file:
+        with open(get_sample_data_path("5G-Sample-Data - BS.csv"), "r") as file:
             for line in file.readlines():
                 index = int(line.split(";")[1])
                 if index in index_list:

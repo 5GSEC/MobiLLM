@@ -2,9 +2,6 @@ import subprocess
 import os
 import json
 import re
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint, HuggingFacePipeline
-
 
 def execute_command(command):
     ''' Execute a shell command and return the output '''
@@ -70,28 +67,3 @@ def pretty_print_messages(update, last_message=False):
         for m in messages:
             pretty_print_message(m, indent=is_subgraph)
         print("\n")
-
-def strip_html(s: str) -> str:
-    return re.sub(r"<[^>]+>", "", s or "")
-
-def compact_mitre(mitre_json_str: str, k_mitigations=2) -> str:
-    """Return a short, plain-text digest of techniques + top mitigations."""
-    try:
-        data = json.loads(mitre_json_str)
-    except Exception:
-        return strip_html(mitre_json_str)
-
-    lines = []
-    for tid, obj in list(data.items()):
-        name = obj.get("Name", "")
-        desc = obj.get("Description", "")
-        # take top-2 mitigation *names*
-        mits = obj.get("Mitigations", []) or []
-        mit_names = []
-        for m in mits[:k_mitigations]:
-            if isinstance(m, dict):
-                mit_names.append(m.get("name") or m.get("id") or "")
-            elif isinstance(m, str):
-                mit_names.append(m)
-        lines.append(f"{tid} - {name}: {desc[:180]}... | Mitigations: {', '.join(mit_names)}")
-    return "\n".join(lines[:3])
