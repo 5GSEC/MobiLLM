@@ -1,5 +1,0 @@
-autoencoder_v2;Abnormal UE State;20000;54649;1749482880;47,48,49,50,51,52,53,54,55;Abnormal UE state detected by the Autoencoder model at the following MobiFlow index 47,48,49,50,51,52,53,54,55
-autoencoder_v2;Abnormal UE State;20000;60544;1749482886;64,65,66,67,68,69,70,71,72;Abnormal UE state detected by the Autoencoder model at the following MobiFlow index 64,65,66,67,68,69,70,71,72
-lstm_v2;Abnormal UE Sequence;10000;53243;1749482847;[[33, 34, 35, 36, 37, 38]];Abnormal UE message sequences detected by the LSTM model at the following MobiFlow sequences [[33, 34, 35, 36, 37, 38]]
-lstm_v2;Abnormal UE Sequence;20000;54649;1749482880;[[43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55]];Abnormal UE message sequences detected by the LSTM model at the following MobiFlow sequences [[43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55]]
-lstm_v2;Abnormal UE Sequence;20000;60544;1749482886;[[60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72]];Abnormal UE message sequences detected by the LSTM model at the following MobiFlow sequences [[60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72]]
