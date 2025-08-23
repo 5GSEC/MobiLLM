@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # local_model: str | None = "mistralai/Mixtral-8x7B-Instruct-v0.1"
     local_model: str | None = None
-    google_api_key: str | None = "AIzaSyD5W_UAx2QRabottm6yh64vtDlLowUqVW4"
+    google_api_key: str | None = None
     gemini_model: str = "gemini-2.5-flash"
     temperature: float = 0.2
     top_p: float = 0.9
