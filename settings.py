@@ -2,7 +2,8 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    local_model: str | None = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+    # local_model: str | None = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+    local_model: str | None = None
     google_api_key: str | None = None
     gemini_model: str = "gemini-2.5-flash"
     temperature: float = 0.2

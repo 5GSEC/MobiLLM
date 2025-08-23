@@ -45,23 +45,23 @@ if __name__ == "__main__":
         else:
             break  # No interrupt means the flow is complete; exit the loop
 
-    # if "chat_response" in result:
-    #     print("Chat Response:", result["chat_response"])
-    #     print("\n\n")
-    # if "threat_summary" in result:
-    #     print("Threat Summary:", result["threat_summary"])
-    #     print("\n\n")
-    # if "mitre_technique" in result:
-    #     print("MITRE Technique:", result["mitre_technique"])
-    #     print("\n\n")
-    # if "countermeasures" in result:
-    #     print("Countermeasures:", result["countermeasures"])
-    #     print("\n\n")
-    # if "outcome" in result:
-    #     print("Outcome:", result["outcome"])
-    #     print("\n\n")
-    # if "tools_called" in result:
-    #     print("Tools Called:")
-    #     for tool in result["tools_called"]:
-    #         print(tool)
-    #     print("\n\n")
+    if "chat_response" in result:
+        print("Chat Response:", result["chat_response"])
+        print("\n\n")
+    if "threat_summary" in result:
+        print("Threat Summary:", result["threat_summary"])
+        print("\n\n")
+    if "mitre_technique" in result:
+        print("MITRE Technique:", result["mitre_technique"])
+        print("\n\n")
+    if "countermeasures" in result:
+        print("Countermeasures:", result["countermeasures"])
+        print("\n\n")
+    if "outcome" in result:
+        print("Outcome:", result["outcome"])
+        print("\n\n")
+    if "tools_called" in result:
+        print("Tools Called:")
+        for tool in result["tools_called"]:
+            print(tool)
+        print("\n\n")
