@@ -14,10 +14,10 @@ class ConfigTuningAgent(BaseAgent):
         
         prompt = f"Action plan:\n{action_plan}"
 
-        call_result = self.invoke(prompt)
-        res = call_result["messages"][-1].content
+        res = self.invoke(prompt)
+        content = res["messages"][-1].content
 
-        response = extract_json_from_string(res.strip().replace("\n", ""))
+        response = extract_json_from_string(content.strip().replace("\n", ""))
 
         if response:
             state["actionable"] = response["actionable"]
