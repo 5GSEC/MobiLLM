@@ -38,7 +38,7 @@ def process_file(file_path, namespace):
     with open(file_path, "r", encoding="utf-8") as f:
         for idx, line in enumerate(f, start=1):
             value = line.strip()
-            value = "xx" + value
+            value = "€€" + value
             if not value:
                 continue
             key = str(idx)
