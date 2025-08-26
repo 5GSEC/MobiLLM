@@ -5,8 +5,6 @@ from .langchain_chat_client import ChatLLM
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
 
-# TODO  :  write interfaces for gemini and ChatHuggingFace
-
 def instantiate_llm(settings: Settings) -> ChatLLM:
     if settings.local_model and not settings.use_hf:
         print('Loading {} from Huggingface-Transformers with 4bit: {} and 8bit: {}'.format(settings.local_model, settings.fourbit, settings.atebit))
@@ -42,7 +40,7 @@ def instantiate_llm(settings: Settings) -> ChatLLM:
         llm = ChatHuggingFace(llm=chatllm)
 
     else:
-        print('creating google model!!')
+        print('Loading {} through API'.format(settings.gemini_model))
         if not os.getenv("GOOGLE_API_KEY") and settings.google_api_key == None:
             print("Warning: GOOGLE_API_KEY not found in environment variables.")
             print("Please set it for the LangChain Gemini LLM to work.")

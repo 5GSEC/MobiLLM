@@ -24,5 +24,5 @@ class ConfigTuningAgent(BaseAgent):
             state["outcome"] = response["outcome"]
             state["updated_config"] = response["updated_config"]
 
-        state.setdefault("tools_called", []).extend(self.collect_tool_calls(res))
+        state = self.collect_tool_calls(res, state)
         return state

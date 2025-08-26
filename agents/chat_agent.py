@@ -10,5 +10,5 @@ class ChatAgent(BaseAgent):
         res = self.invoke(query)
         content = res["messages"][-1].content
         state["chat_response"] = content
-        state.setdefault("tools_called", []).extend(self.collect_tool_calls(res))
+        state = self.collect_tool_calls(res, state)
         return state
