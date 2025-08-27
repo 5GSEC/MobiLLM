@@ -30,7 +30,7 @@ Observation: the result of the action
 Thought: I now have enough information to answer the user's question.
 Final Answer: the final answer to the original input question.
 
-Output the answer to the user query below:
+Only Output the Final Answer to the user query below (DO NOT show your thought and reasoning steps):
 
 User query:
 

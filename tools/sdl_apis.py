@@ -1,9 +1,10 @@
 import subprocess
 import os
 import json
+import time
 from langchain.tools import tool
 from ..utils import *
-from .global_vars import *
+from . import global_vars
 
 def get_sample_data_path(filename: str) -> str:
     """
@@ -59,7 +60,7 @@ def fetch_service_status_osc() -> dict:
     services = {}
 
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         with open(get_sample_data_path("5G-Sample-Data - Service.csv"), "r") as f:
             lines = f.readlines()
             for line in lines:
@@ -392,7 +393,7 @@ def fetch_sdl_event_data_osc() -> dict:
     event = {}
     event_id_counter = 1
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         # read MobieXpert events
         with open(get_sample_data_path("5G-Sample-Data - Event - MobieXpert.csv"), "r") as f:
             event_meta = "Event ID,Event Name,Affected base station ID,Time,Affected UE ID,Description,Level".split(",")
@@ -613,7 +614,7 @@ def build_xapp_osc(xapp_name: str):
     """
 
     # if simulation mode is enabled, return sample message
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         return {"message": "Build finished", "logs": []}, 200
 
     original_cwd = os.getcwd()
@@ -738,7 +739,7 @@ def deploy_xapp_osc(xapp_name: str):
     Deploy the xApp from the given xapp_name.
     '''
     # if simulation mode is enabled, return sample message
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         return {"message": f"{xapp_name} is deployed successfully", "logs": []}, 200
 
     original_cwd = os.getcwd()  # Remember our original directory
@@ -867,7 +868,7 @@ def unDeploy_xapp_osc(xapp_name: str):
         step 4: check undeployment is successful or not
     '''
     # if simulation mode is enabled, return sample message
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         return {"message": f"{xapp_name} is undeployed successfully", "logs": []}, 200
     
     original_cwd = os.getcwd()
@@ -944,7 +945,7 @@ def get_ue_mobiflow_data_all_tool() -> list:
     '''
     keys = []
     # if simulation mode is enabled, grab the data keys from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         with open(get_sample_data_path("5G-Sample-Data - UE.csv"), "r") as file:
             for line in file.readlines():
                 index = int(line.split(";")[1])
@@ -990,7 +991,7 @@ def get_ue_mobiflow_data_by_index(index_list: list) -> list:
         return []
 
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         mf_list = []
         with open(get_sample_data_path("5G-Sample-Data - UE.csv"), "r") as file:
             for line in file.readlines():
@@ -1033,7 +1034,7 @@ def get_bs_mobiflow_data_all_tool() -> list:
     '''
     keys = []
     # if simulation mode is enabled, grab the data keys from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         with open(get_sample_data_path("5G-Sample-Data - BS.csv"), "r") as file:
             for line in file.readlines():
                 index = int(line.split(";")[1])
@@ -1079,7 +1080,7 @@ def get_bs_mobiflow_data_by_index(index_list: list) -> list:
         return []
     
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         mf_list = []
         with open(get_sample_data_path("5G-Sample-Data - BS.csv"), "r") as file:
             for line in file.readlines():

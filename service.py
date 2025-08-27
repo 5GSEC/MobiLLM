@@ -74,6 +74,7 @@ class MobiLLMService:
                         response_payload["interrupted"] = True  
                         response_payload["action_strategy"] = actionable_strategy
                         response_payload["updated_config"] = updated_config
+                        response_payload["original_config"] = result["original_config"] if "original_config" in result else ""
                         response_payload["interrupt_prompt"] = interrupt_value.split("```")[0]
                         response_message = response_message + f"\n\n**Proposed Response**:\n\nMobiLLM has identified an actionable response to mitigate the event through RAN configuration tuning. Please read following action plan:\n\n{action_plan}\n\n**Would you like to review and approve MobiLLM's actions?**"
             else:

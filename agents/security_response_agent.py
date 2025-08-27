@@ -1,6 +1,7 @@
 from .baseagent import BaseAgent
 from ..state import MobiLLMState
 from ..utils import *
+from ..tools.control_apis import get_ran_cu_config_tool
 
 class ResponseAgent(BaseAgent):
     def run(self, state: MobiLLMState) -> MobiLLMState:
@@ -29,6 +30,8 @@ class ResponseAgent(BaseAgent):
             state["actionable"] = parsed.get("actionable", "no")
             state["action_plan"] = parsed.get("action_plan", "")
             state["action_strategy"] = parsed.get("action_strategy", "none")
+            if state["action_strategy"] == "config tuning":
+                state["original_config"] = get_ran_cu_config_tool.invoke("") # store original RAN config before changes
         else:
             state["actionable"] = "no"
             state["action_plan"] = ""

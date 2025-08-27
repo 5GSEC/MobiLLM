@@ -13,6 +13,7 @@ class MobiLLMState(TypedDict, total=False):
     action_plan: str
     chat_response: str
     task: Literal["chat", "security_analysis"]
+    original_config: str
     updated_config: str
     outcome: str
     tools_called: List[str]
