@@ -70,12 +70,20 @@ class MobiLLMService:
                     if "__interrupt__" in result.keys():
                         interrupt_value = result["__interrupt__"][0].value
                         # extract modified config data
-                        updated_config = interrupt_value.split("```")[1]
-                        response_payload["interrupted"] = True  
-                        response_payload["action_strategy"] = actionable_strategy
-                        response_payload["updated_config"] = updated_config
-                        response_payload["original_config"] = result["original_config"] if "original_config" in result else ""
-                        response_payload["interrupt_prompt"] = interrupt_value.split("```")[0]
+                        tokens = interrupt_value.split("```")
+                        if len(tokens) > 1:
+                            updated_config = tokens[1]
+                            response_payload["interrupted"] = True  
+                            response_payload["action_strategy"] = actionable_strategy
+                            response_payload["updated_config"] = updated_config
+                            response_payload["original_config"] = result["original_config"] if "original_config" in result else ""
+                            response_payload["interrupt_prompt"] = tokens[0]
+                        else:
+                            response_payload["interrupted"] = True
+                            response_payload["action_strategy"] = actionable_strategy
+                            response_payload["updated_config"] = ""
+                            response_payload["original_config"] = result["original_config"] if "original_config" in result else ""
+                            response_payload["interrupt_prompt"] = "Exception: No config data found in the interrupt message."
                         response_message = response_message + f"\n\n**Proposed Response**:\n\nMobiLLM has identified an actionable response to mitigate the event through RAN configuration tuning. Please read following action plan:\n\n{action_plan}\n\n**Would you like to review and approve MobiLLM's actions?**"
             else:
                 # if not actionable, output the suggested response
