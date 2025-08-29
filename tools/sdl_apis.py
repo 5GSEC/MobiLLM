@@ -2,9 +2,9 @@ import subprocess
 import os
 import json
 import time
-from ..utils import *
 from langchain.tools import tool
-from .. import global_vars
+from ..utils import *
+from . import global_vars
 
 def get_sample_data_path(filename: str) -> str:
     """

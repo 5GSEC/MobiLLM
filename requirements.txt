@@ -1,3 +1,4 @@
+rich
 flask
 flask-cors
 openai

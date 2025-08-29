@@ -1,10 +1,46 @@
 import os
 import json
-import faiss # faiss-cpu
+from pathlib import Path
+import faiss
 import numpy as np
 from langchain.tools import tool
-from sentence_transformers import SentenceTransformer # sentence_transformers
-from .. import global_vars
+from sentence_transformers import SentenceTransformer 
+from importlib.resources import files as pkg_files
+from typing import List, Dict, Any, Optional
+
+from .global_vars import * 
+
+# ---------- assets path resolution helpers ----------
+
+def _assets_dir() -> Path:
+    return (pkg_files("MobiLLM") / "assets")
+
+def _resolve_path(maybe_path: str, default_name: Optional[str] = None) -> Path:
+    """
+    Resolve a path:
+      - absolute path: returned as-is (must exist)
+      - path relative to CWD: if exists, use it
+      - bare filename: resolved under package assets dir
+    """
+    p = Path(maybe_path)
+    if p.is_absolute() and p.exists():
+        return p
+
+    # try relative to CWD
+    if p.exists():
+        return p.resolve()
+
+    # fall back to package assets
+    base = _assets_dir()
+    if default_name is not None and maybe_path.strip() == "":
+        # empty string: use default name under assets
+        p = base / default_name
+    else:
+        # given string: interpret under assets
+        p = base / maybe_path
+    return p.resolve()
+
+# ---------- tools ----------
 
 @tool
 def get_all_mitre_fight_techniques(fight_json_path: str=None) -> dict:
@@ -70,9 +106,9 @@ def search_mitre_fight_techniques(threat_summary: str, top_k: int=5, fight_json_
     query_embedding_faiss = np.array(query_embedding, dtype='float32')
     faiss.normalize_L2(query_embedding_faiss)
 
-    if global_vars.mitre_faiss_db is not None:
+    if mitre_faiss_db is not None:
         # if the db has been loaded from global variable, use it directly
-        index = global_vars.mitre_faiss_db
+        index = mitre_faiss_db
     else:
         # load the db from file
         index = load_or_create_mitre_fight_faiss_index(fight_json_file_name=fight_json_path)
