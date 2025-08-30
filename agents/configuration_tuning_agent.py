@@ -17,6 +17,10 @@ class ConfigTuningAgent(BaseAgent):
         res = self.invoke(prompt)
         content = res["messages"][-1].content
 
+        # ensure content is a valid string
+        if not content or content.strip() == "":
+            return state
+
         response = extract_json_from_string(content.strip().replace("\n", ""))
 
         if response:

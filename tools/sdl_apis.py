@@ -1119,32 +1119,52 @@ def get_ue_mobiflow_description_tool() -> str:
     API to retreve the description of UE MobiFlow data fields. Each field is defined with its default value, description, and value range if applicable.
     '''
     return '''
-    msg_type = "UE"                        # Msg hdr  - mobiflow type [UE, BS]
-    msg_id = 0                             # Msg hdr  - unique mobiflow event ID
-    mobiflow_ver = MOBIFLOW_VERSION        # Msg hdr  - version of Mobiflow
-    generator_name = GENERATOR_NAME        # Msg hdr  - generator name (e.g., SECSM)
-    #####################################################################
-    timestamp = 0              # UE meta  - timestamp (ms)
-    nr_cell_id = 0             # UE meta  - NR (5G) basestation id
-    gnb_cu_ue_f1ap_id = 0      # UE meta  - UE id identified by gNB CU F1AP
-    gnb_du_ue_f1ap_id = 0      # UE meta  - UE id identified by gNB DU F1AP
-    rnti = 0                   # UE meta  - ue rnti
-    s_tmsi = 0                 # UE meta  - ue s-tmsi
-    mobile_id = 0              # UE meta  - mobile device id (e.g., SUPI, SUCI, IMEI)
-    rrc_cipher_alg = 0         # UE packet telemetry  - rrc cipher algorithm
-    rrc_integrity_alg = 0      # UE packet telemetry  - rrc integrity algorithm
-    nas_cipher_alg = 0         # UE packet telemetry  - nas cipher algorithm
-    nas_integrity_alg = 0      # UE packet telemetry  - nas integrity algorithm
-    #####################################################################
-    rrc_msg = ""               # UE packet-agnostic telemetry  - RRC message
-    nas_msg = ""               # UE packet-agnostic telemetry  - NAS message (an empty nas_msg could indicate an encrypted NAS message since MobiFlow cannot decode encrypted NAS messages)
-    rrc_state = 0              # UE packet-agnostic telemetry  - RRC state       [INACTIVE, RRC_IDLE, RRC_CONNECTED, RRC_RECONFIGURED]
-    nas_state = 0              # UE packet-agnostic telemetry  - NAS state (EMM) [EMM_DEREGISTERED, EMM_REGISTER_INIT, EMM_REGISTERED]
-    rrc_sec_state = 0          # UE packet-agnostic telemetry  - security state  [SEC_CONTEXT_NOT_EXIST, SEC_CONTEXT_EXIST]
-    #####################################################################
-    reserved_field_1 = 0       # UE packet-specific telemetry
-    reserved_field_2 = 0       # UE packet-specific telemetry
-    reserved_field_3 = 0       # UE packet-specific telemetry
+    ## UE MobiFlow Definition
+
+    UE MobiFlow data defines the data schema for User Equipment (UE) mobiflow event logs. The data is provided in a CSV format, using a semicolon (;) as the delimiter. Each line in the file represents a single event record.
+
+    ## CSV Field Descriptions
+
+    The following table describes each field in the order it appears in the CSV file.
+    Position	Field Name	Data Type	Description
+    1	msg_type	String	Message header - mobiflow type. Will be "UE".
+    2	msg_id	Integer	A unique identifier for this specific mobiflow event.
+    3	mobiflow_ver	String	The version of the Mobiflow format (e.g., "v2.1").
+    4	generator_name	String	The name of the log generator (e.g., "SECSM").
+    5	timestamp	Integer	UE metadata - Timestamp of the event in milliseconds since the Unix epoch.
+    6	nr_cell_id	Integer	UE metadata - NR (5G) base station identifier.
+    7	gnb_cu_ue_f1ap_id	Integer	UE metadata - UE identifier from the gNB Central Unit (CU).
+    8	gnb_du_ue_f1ap_id	Integer	UE metadata - UE identifier from the gNB Distributed Unit (DU).
+    9	rnti	Integer	UE metadata - Radio Network Temporary Identifier for the UE.
+    10	s_tmsi	Integer	UE metadata - S-Temporary Mobile Subscriber Identity for the UE.
+    11	mobile_id	Integer	UE metadata - Mobile device identifier (e.g., SUPI, SUCI, IMEI).
+    12	rrc_cipher_alg	Integer	Value Mapping: 0: None, 1: AES, 2: SNOW3G, 3: ZUC.
+    13	rrc_integrity_alg	Integer	Value Mapping: 0: None, 1: AES, 2: SNOW3G, 3: ZUC.
+    14	nas_cipher_alg	Integer	Value Mapping: 0: None, 1: AES, 2: SNOW3G, 3: ZUC.
+    15	nas_integrity_alg	Integer	Value Mapping: 0: None, 1: AES, 2: SNOW3G, 3: ZUC.
+    16	rrc_msg	String	The Radio Resource Control (RRC) message name.
+    17	nas_msg	String	The Non-Access Stratum (NAS) message name. An empty value may indicate an encrypted message.
+    18	rrc_state	Integer	Value Mapping: 0: INACTIVE, 1: RRC_IDLE, 2: RRC_CONNECTED, 3: RRC_RECONFIGURED.
+    19	nas_state	Integer	Value Mapping: 0: EMM_DEREGISTERED, 1: EMM_REGISTER_INIT, 2: EMM_REGISTERED.
+    20	rrc_sec_state	Integer	Value Mapping: 0: SEC_CONTEXT_NOT_EXIST, 1: SEC_CONTEXT_EXIST.
+    21	reserved_field_1	Integer	Reserved for future use.
+    22	reserved_field_2	Integer	Reserved for future use.
+    23	reserved_field_3	Integer	Reserved for future use.
+
+    ## Example
+    To understand how a raw CSV line maps to this schema, consider the following example:
+
+    Raw CSV Line:
+    UE;4;v2.1;SECSM;1749482829;10000;1;2880;2880;0;2089900004778;2;2;0;2;ULInformationTransfer;Authenticationresponse;2;1;0;0;0;0
+
+    Parsed Fields:
+        1: msg_type: "UE"
+        5: timestamp: 1749482829
+        11: mobile_id: 2089900004778
+        16: rrc_msg: "ULInformationTransfer"
+        17: nas_msg: "Authenticationresponse"
+        18: rrc_state: 2 (which maps to RRC_CONNECTED)
+        19: nas_state: 1 (which maps to EMM_REGISTER_INIT
     '''
 
 @tool
@@ -1153,18 +1173,38 @@ def get_bs_mobiflow_description_tool() -> str:
     API to retreve the description of BS MobiFlow data fields. Each field is defined with its default value, description, and value range if applicable.
     '''
     return '''
-    msg_type = "BS"            # Msg hdr  - mobiflow type [UE, BS]
-    msg_id = 0                 # Msg hdr  - unique mobiflow event ID
-    timestamp = get_time_sec()             # Msg hdr  - timestamp (s)
-    mobiflow_ver = MOBIFLOW_VERSION        # Msg hdr  - version of Mobiflow
-    generator_name = GENERATOR_NAME        # Msg hdr  - generator name (e.g., SECSM)
-    ################################################################
-    nr_cell_id = 0             # BS meta  - basestation id
-    mcc = ""                   # BS meta  - mobile country code
-    mnc = ""                   # BS meta  - mobile network code
-    tac = ""                   # BS meta  - tracking area code
-    report_period = 0          # BS meta  - report period (ms)
-    status = 0                 # BS meta  - status (1: connected, 2: disconnected)
+    ## BS MobiFlow Definition
+    BS MobiFlow data defines the data schema for Base Station (BS) mobiflow event logs. The data is provided in a CSV format, using a semicolon (;) as the delimiter. Each line in the file represents a single event record.
+
+    ## CSV Field Descriptions
+    The following table describes each field in the order it appears in the CSV file.
+    Position	Field Name	Data Type	Description
+    1	msg_type	String	Message header - mobiflow type. Will be "BS".
+    2	msg_id	Integer	A unique identifier for this specific mobiflow event.
+    3	timestamp	Integer	Message header - Timestamp of the event in seconds since the Unix epoch.
+    4	mobiflow_ver	String	The version of the Mobiflow format (e.g., "v2.1").
+    5	generator_name	String	The name of the log generator (e.g., "SECSM").
+    6	nr_cell_id	Integer	BS metadata - The base station identifier.
+    7	mcc	String	BS metadata - Mobile Country Code (e.g., "208").
+    8	mnc	String	BS metadata - Mobile Network Code (e.g., "99").
+    9	tac	String	BS metadata - Tracking Area Code.
+    10	report_period	Integer	BS metadata - The reporting period in milliseconds.
+    11	status	Integer	BS metadata - Status of the connection. Value Mapping: 1: Connected, 2: Disconnected.
+
+    ## Example
+    To understand how a raw CSV line maps to this schema, consider the following example:
+
+    Raw CSV Line:
+    BS;0;1749482804;v2.1;SECSM;10000;299;099;0;1000;1
+
+    Parsed Fields:
+        1: msg_type: "BS"
+        6: nr_cell_id: 10000
+        7: mcc: 299
+        8: mnc: 099
+        9: tac: 0
+        10: report_period: 1000
+        11: status: 1 (which maps to Connected)
     '''
 
 @tool
@@ -1173,14 +1213,29 @@ def get_event_description_tool() -> str:
     API to retreve the description of event data fields
     '''
     return '''
-        Each event consists of the following fields with their descriptions:
-        id: Unique ID of the event,
-        source: The source that generates the event, i.e., the xApp name, 
-        name: The name describing the event,
-        cellID: The involved base station ID in this event,
-        ueID: The involved user equipment's (UE) ID in this event,
-        timestamp: The event timestamp,
-        severity: The severity of event,
-        mobiflow_index (if available): the MobiFlow telemetry index associated with the event, matching the msg_id field in each MobiFlow telemetry,
-        description: The event description
+    ## Event Definition
+    Event data defines the data schema for event logs. The data is provided in a CSV format, using a semicolon (;) as the delimiter. Each line in the file represents a single event record.
+
+    ## CSV Field Descriptions
+    id: Unique ID of the event (may not be available),
+    source: The source that generates the event, i.e., the xApp name, 
+    name: The name describing the event,
+    cellID: The involved base station ID in this event,
+    ueID: The involved user equipment's (UE) ID in this event,
+    timestamp: The event timestamp,
+    severity: The severity of event,
+    mobiflow_index (if available): the UE MobiFlow telemetry index associated with the event, matching the msg_id field in each MobiFlow telemetry,
+    description: The event description
+
+    ## Example
+    2;RRC Null Cipher;20000;1749482886;60544;The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.;Critical
+
+    Parsed Fields:
+        1: id: 2
+        2: name: RRC Null Cipher
+        3: cellID: 20000
+        4: ueID: 1749482886
+        5: timestamp: 60544
+        6: severity: Critical
+
     '''

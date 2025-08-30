@@ -9,6 +9,7 @@ def mobillm_chat_tools():
             fetch_sdl_data_osc_tool,
             get_ue_mobiflow_data_by_index_tool,
             get_ue_mobiflow_description_tool,
+            get_ue_mobiflow_data_all_tool,
             get_bs_mobiflow_data_all_tool,
             get_bs_mobiflow_data_by_index_tool,
             get_bs_mobiflow_description_tool,

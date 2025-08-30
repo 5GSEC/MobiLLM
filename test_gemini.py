@@ -10,15 +10,19 @@ if __name__ == "__main__":
     settings.gemini_model = "gemini-2.5-flash"
     settings.local_model = None
     svc = MobiLLMService(settings)
-    result = svc.invoke("""[security analysis]
-    Event Details:
-    - Source: MobieXpert
-    - Name: RRC Null Cipher
-    - Cell ID: 20000
-    - UE ID: 54649
-    - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
-    - Severity: Critical
-    - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
+    # result = svc.invoke("""[security analysis]
+    # Event Details:
+    # - Source: MobieXpert
+    # - Name: RRC Null Cipher
+    # - Cell ID: 20000
+    # - UE ID: 54649
+    # - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
+    # - Severity: Critical
+    # - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
+    # """)
+
+    result = svc.invoke("""[chat]
+    What are the IMSIs of all the UEs connected to the network?
     """)
     
     while True:
