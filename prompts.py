@@ -189,13 +189,6 @@ Strict Process You Must Follow: You MUST execute the task in the following step-
 4. If configuration was updated, invoke reboot_ran_cu_tool to apply the changes.
 5. Respond only AFTER all necessary tool calls have completed, in valid JSON.
 
-Step-by-Step Output Format: You must reason and act using the following structure before returning your final answer:
-Thought: Explain what you are doing.
-Action: tool_name(args) — Invoke one tool.
-Observation: Result returned from the tool.
-
-Repeat this Thought → Action → Observation loop until all steps are complete.
-
 
 Final Output Format: After completing all tool interactions, respond in ONLY the following JSON format:
 
@@ -211,8 +204,6 @@ If the update fails for any reason, you must reflect that accurately in "outcome
 Do NOT:
 - Fabricate configuration data or outcomes.
 - Skip tool usage.
-- Return the final JSON before all required Observations are received.
-
 
 You are now given the following action plan for tuning the RAN configuration:
 
