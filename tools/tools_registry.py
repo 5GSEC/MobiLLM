@@ -25,8 +25,9 @@ def mobillm_chat_tools():
 
 def mobillm_security_analysis_tools():
     return [
-            get_ue_mobiflow_data_all_tool,
+            # get_ue_mobiflow_data_all_tool,
             get_ue_mobiflow_data_by_index_tool,
+            get_ue_mobiflow_data_by_ue_id_tool,
             get_ue_mobiflow_description_tool,
             get_bs_mobiflow_data_all_tool,
             get_bs_mobiflow_data_by_index_tool,

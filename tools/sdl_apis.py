@@ -979,6 +979,31 @@ def get_ue_mobiflow_data_by_index_tool(index_list_str: str) -> list:
         index_list.append(int(i))
     return get_ue_mobiflow_data_by_index(index_list)
 
+@tool
+def get_ue_mobiflow_data_by_ue_id_tool(ue_id: int) -> list:
+    '''
+    Get UE MobiFlow telemetry from SDL using a specified UE ID. UE MobiFlow telemetry records UE meta data, identifiers, and RRC/NAS security algorithms, as well as RRC/NAS messages.
+    Before analyzing the MobiFlow telemetry, ensure you have called get_ue_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
+    Args:
+        ue_id (int): the UE ID (gnb_du_ue_f1ap_id) to get the MobiFlow telemetry for
+    '''
+    return get_ue_mobiflow_data_by_ue_id(ue_id)
+
+def get_ue_mobiflow_data_by_ue_id(ue_id: int) -> list:
+    '''
+    Get UE MobiFlow telemetry from SDL using a specified UE ID. UE MobiFlow telemetry records UE meta data, identifiers, and RRC/NAS security algorithms, as well as RRC/NAS messages.
+    Before analyzing the MobiFlow telemetry, ensure you have called get_ue_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
+    Args:
+        ue_id (int): the UE ID (gnb_du_ue_f1ap_id) to get the MobiFlow telemetry for
+    '''
+    mobiflow_data = get_ue_mobiflow_data_all_tool.invoke("")
+    mf_list = []
+    for data in mobiflow_data:
+        if int(data.split(";")[7]) == ue_id:
+            mf_list.append(data)
+    return mf_list
+    
+
 def get_ue_mobiflow_data_by_index(index_list: list) -> list:
     '''
     Get UE MobiFlow telemetry from SDL using a specified index list

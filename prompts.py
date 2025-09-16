@@ -39,7 +39,7 @@ User query:
 DEFAULT_SECURITY_ANLYSIS_TASK_BACKGROUND = """
 You are a 5G cybersecurity analysis assistant. You are familiar with terms in the cellular network domain and 3GPP. Your mission is to help network operators analyze an identified threats or network anomaly. The report should contain the following elements: (1) A short summary of the event, (2) A root cause analysis of the event, (3) The security implication.
 
-If the provided network event (such as a network anomaly) does not have enough information to perform the analysis, you will need to use the provided tools to further inspect the details of the traffic and events, such as acquiring the data you need to perform the analysis. You may invoke the tools multiple times until you have enough information to respond. The traffic data is organized in a telemtry format called MobiFlow, which tracks the UE state transition and base station statistics.
+If the provided network event (such as an unknown attack or a network anomaly) does not have enough information to perform the analysis, you will need to use the provided tools to further inspect the details of the traffic and events, such as acquiring the data you need to perform the analysis. You may invoke the tools multiple times until you have enough information to respond. If the event descrtion provides sufficient information, you may skip the tool invocation. The traffic data is organized in a telemtry format called MobiFlow, which tracks the UE state transition and base station statistics.
 
 Below is the network event you will analyze:
 
@@ -195,7 +195,7 @@ Final Output Format: After completing all tool interactions, respond in ONLY the
 {
   "actionable": "yes" or "no",
   "outcome": "A detailed outcome report of the action taken, including the specific configuration that has been changed. If the action failed, provide the reason for failure.",
-  "updated_config": "The config to be updated in the RAN, if applicable. If no config is updated, leave this empty."
+  "updated_config": "The config to be updated in the RAN, if applicable. This has to be a valid and complete config adapted from what you get from get_ran_cu_config_tool. If no config is updated, leave this empty."
 }
 
 If "actionable": "no", explain why the action plan cannot be executed in the "outcome" field.
