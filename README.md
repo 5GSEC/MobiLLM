@@ -18,7 +18,7 @@ MobiLLM is an intelligent multi-agent system designed specifically for 5G networ
 MobiLLM uses a multi-agent architecture built with LangGraph:
 
 <p align="center">
-  <img src="MobiLLM.png" alt="MobiLLM LangGraph Architecture" width="350"/>
+  <img src="MobiLLM.png" alt="MobiLLM LangGraph Architecture" width="900"/>
 </p>
 
 ### Agent Specializations
