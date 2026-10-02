@@ -14,12 +14,14 @@ class ResponseAgent(BaseAgent):
         prompt = f"Threat summary:\n{threat_summary}\nRelevant MiTRE FiGHT Techniques:\n{mitre_technique}"
         res = self.invoke(prompt)
         raw_response = res["messages"][-1].content or ""
+        raw_response = raw_response[0]["text"] if isinstance(raw_response, list) else raw_response
 
         try:
             if raw_response.strip() == "" and call_result["messages"][-1].response_metadata.get("finish_reason") == "MALFORMED_FUNCTION_CALL":
                 print("MALFORMED_FUNCTION_CALL detected, retrying...")
                 call_result = self.response_planning_agent.invoke({"messages": [("user", prompt)]})
                 raw_response = call_result["messages"][-1].content
+                raw_response = raw_response[0]["text"] if isinstance(raw_response, list) else raw_response
         except:
             print("raw_response", raw_response)
             

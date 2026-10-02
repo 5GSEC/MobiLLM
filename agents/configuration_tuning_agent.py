@@ -16,6 +16,7 @@ class ConfigTuningAgent(BaseAgent):
 
         res = self.invoke(prompt)
         content = res["messages"][-1].content
+        content = content[0]["text"] if isinstance(content, list) else content
 
         # ensure content is a valid string
         if not content or content.strip() == "":

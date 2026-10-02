@@ -9,6 +9,7 @@ class ChatAgent(BaseAgent):
             return state
         res = self.invoke(query)
         content = res["messages"][-1].content
+        content = content[0]["text"] if isinstance(content, list) else content
         state["chat_response"] = content
         state = self.collect_tool_calls(res, state)
         return state
